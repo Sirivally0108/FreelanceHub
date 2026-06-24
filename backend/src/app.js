@@ -1,3 +1,4 @@
+console.log("=== USING SRC APP ===");
 const express = require('express');
 const cors = require('cors');
 
@@ -7,11 +8,6 @@ const proposalRoutes = require('./routes/proposalRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
-
-console.log(userRoutes);
-console.log(projectRoutes);
-console.log(proposalRoutes);
-console.log(messageRoutes);
 
 const app = express();
 

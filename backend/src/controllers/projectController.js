@@ -32,12 +32,12 @@ exports.createProject = async (req, res) => {
     }
 
     catch (error) {
+        console.error(error);
 
         res.status(500).json({
             success: false,
             message: error.message
         });
-
     }
 
 };
@@ -46,7 +46,7 @@ exports.createProject = async (req, res) => {
 
 // Get All Projects
 exports.getProjects = async (req, res) => {
-
+    console.log("=== GET PROJECTS CALLED ===");
     try {
 
         const result = await pool.query(
@@ -64,6 +64,9 @@ exports.getProjects = async (req, res) => {
     }
 
     catch (error) {
+
+        console.log("DATABASE ERROR:");
+        console.log(error);
 
         res.status(500).json({
             success: false,
