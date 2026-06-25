@@ -1,16 +1,33 @@
 import { useState } from "react";
-
+import axios from "axios";
 function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("client");
 
-  const handleRegister = (e) => {
+  
+  const handleRegister = async (e) => {
     e.preventDefault();
-    alert("Registered successfully");
-  };
 
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/auth/register",
+        {
+          name,
+          email,
+          password,
+          role,
+        }
+      );
+
+      alert(response.data.message);
+    } catch (error) {
+      console.error(error);
+
+      alert("Registration failed");
+    }
+  };
   return (
     <div style={styles.container}>
       <h2>Register</h2>

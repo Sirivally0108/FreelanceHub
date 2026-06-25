@@ -1,38 +1,34 @@
+import { useState, useEffect } from "react";
+import axios from "axios";
+
 function Projects() {
-  const projects = [
-    {
-      title: "React E-Commerce Website",
-      budget: "₹20,000",
-      skills: "React, Node.js",
-      proposals: 15,
-    },
-    {
-      title: "Portfolio Website Design",
-      budget: "₹8,000",
-      skills: "HTML, CSS, JavaScript",
-      proposals: 8,
-    },
-    {
-      title: "Python Automation Tool",
-      budget: "₹15,000",
-      skills: "Python, Automation",
-      proposals: 12,
-    },
-    {
-      title: "Mobile App UI Design",
-      budget: "₹25,000",
-      skills: "Figma, UI/UX",
-      proposals: 10,
-    },
-  ];
+  const [projects, setProjects] = useState([]);
+
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  const fetchProjects = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:5000/api/projects"
+      );
+
+      setProjects(response.data.data);
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+    }
+  };
 
   return (
     <div style={styles.page}>
       {/* Header */}
       <div style={styles.hero}>
         <h1>🚀 Find Your Next Opportunity</h1>
+
         <p>
-          Explore projects, connect with clients, and grow your freelance career.
+          Explore projects, connect with clients, and grow your freelance
+          career.
         </p>
       </div>
 
@@ -55,7 +51,7 @@ function Projects() {
       {/* Stats */}
       <div style={styles.statsContainer}>
         <div style={styles.statCard}>
-          <h2>500+</h2>
+          <h2>{projects.length}</h2>
           <p>Projects</p>
         </div>
 
@@ -78,37 +74,56 @@ function Projects() {
 
         <p>Budget: ₹40,000</p>
 
-        <button style={styles.applyBtn}>
+        <button
+          style={styles.applyBtn}
+          onClick={() => alert("Applied Successfully")}
+        >
           Apply Now
         </button>
       </div>
 
-      {/* Projects Grid */}
-      <h2 style={{ marginTop: "40px" }}>Latest Projects</h2>
+      {/* Projects */}
+      <h2 style={{ marginTop: "40px" }}>
+        Latest Projects
+      </h2>
 
       <div style={styles.projectGrid}>
-        {projects.map((project, index) => (
-          <div key={index} style={styles.projectCard}>
+        {projects.map((project) => (
+          <div
+            key={project.project_id}
+            style={styles.projectCard}
+          >
             <h3>{project.title}</h3>
 
             <p>
-              <strong>Budget:</strong> {project.budget}
+              <strong>Description:</strong>{" "}
+              {project.description}
             </p>
 
             <p>
-              <strong>Skills:</strong> {project.skills}
+              <strong>Budget:</strong> ₹{project.budget}
             </p>
 
             <p>
-              <strong>Proposals:</strong> {project.proposals}
+              <strong>Status:</strong> {project.status}
             </p>
 
             <div style={styles.buttonRow}>
-              <button style={styles.applyBtn}>
+              <button
+                style={styles.applyBtn}
+                onClick={() =>
+                  alert(`Applied for ${project.title}`)
+                }
+              >
                 Apply
               </button>
 
-              <button style={styles.saveBtn}>
+              <button
+                style={styles.saveBtn}
+                onClick={() =>
+                  alert(`Saved ${project.title}`)
+                }
+              >
                 ❤️ Save
               </button>
             </div>
@@ -162,7 +177,8 @@ const styles = {
 
   statsContainer: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+    gridTemplateColumns:
+      "repeat(auto-fit, minmax(180px, 1fr))",
     gap: "20px",
     marginBottom: "30px",
   },
@@ -172,11 +188,13 @@ const styles = {
     padding: "20px",
     textAlign: "center",
     borderRadius: "15px",
-    boxShadow: "0 4px 15px rgba(0,0,0,0.08)",
+    boxShadow:
+      "0 4px 15px rgba(0,0,0,0.08)",
   },
 
   featured: {
-    background: "linear-gradient(135deg, #38bdf8, #0ea5e9)",
+    background:
+      "linear-gradient(135deg, #38bdf8, #0ea5e9)",
     color: "white",
     padding: "25px",
     borderRadius: "20px",
@@ -186,7 +204,8 @@ const styles = {
 
   projectGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+    gridTemplateColumns:
+      "repeat(auto-fit, minmax(280px, 1fr))",
     gap: "20px",
   },
 
@@ -194,7 +213,8 @@ const styles = {
     backgroundColor: "white",
     padding: "20px",
     borderRadius: "15px",
-    boxShadow: "0 4px 15px rgba(0,0,0,0.08)",
+    boxShadow:
+      "0 4px 15px rgba(0,0,0,0.08)",
   },
 
   buttonRow: {
