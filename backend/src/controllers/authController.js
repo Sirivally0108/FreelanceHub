@@ -13,18 +13,26 @@ exports.register = async (req, res) => {
       [name, email, password, role]
     );
 
-    res.json({
+    return res.status(201).json({
       success: true,
-      data: result.rows[0],
+      message: "Registration Successful!",
+      user: result.rows[0],
     });
   } catch (error) {
     console.error("REGISTER ERROR:", error);
 
-    res.status(500).json({
+    if (error.code === "23505") {
+      return res.status(400).json({
         success: false,
-        message: error.message,
-    });
+        message: "Email already registered",
+      });
     }
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
 };
 
 exports.login = async (req, res) => {
@@ -42,18 +50,21 @@ exports.login = async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.json({
+      return res.status(401).json({
         success: false,
         message: "Invalid credentials",
       });
     }
 
-    res.json({
+    return res.json({
       success: true,
+      message: "Login Successful!",
       user: result.rows[0],
     });
   } catch (error) {
-    res.status(500).json({
+    console.error("LOGIN ERROR:", error);
+
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
