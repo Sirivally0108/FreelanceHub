@@ -8,6 +8,9 @@ const proposalRoutes = require('./routes/proposalRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const authRoutes = require('./routes/authRoutes');
+const freelancerRoutes = require("./routes/freelancerRoutes");
+const clientRoutes = require("./routes/clientRoutes");
 
 const app = express();
 
@@ -20,5 +23,8 @@ app.use('/api/proposals', proposalRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/auth', authRoutes);
+app.use("/api/freelancer", freelancerRoutes);
+app.use("/api/client", clientRoutes);
 
 module.exports = app;

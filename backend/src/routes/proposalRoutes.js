@@ -1,10 +1,10 @@
 const express = require('express');
 
 const router = express.Router();
-
 const {
-    submitProposal,
-    getProposalsByProject
+  submitProposal,
+  getProposalsByProject,
+  getProposalsByFreelancer
 } = require('../controllers/proposalController');
 
 
