@@ -66,8 +66,9 @@ function Login() {
             Login
           </button>
 
-          <p style={styles.footerText}>
-            Don't have an account? Register
+          <p style={{ marginTop: "15px" }}>
+            Don't have an account?
+            <a href="/register"> Register</a>
           </p>
         </div>
       </div>

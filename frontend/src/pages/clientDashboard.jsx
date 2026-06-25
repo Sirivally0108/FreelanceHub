@@ -1,61 +1,75 @@
+import { useEffect, useState } from "react";
+import axios from "axios";
+
 function ClientDashboard() {
+  const [projects, setProjects] = useState([]);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/api/projects")
+      .then((res) => setProjects(res.data.data))
+      .catch((err) => console.log(err));
+  }, []);
+
   return (
     <div style={styles.page}>
-      {/* Hero Section */}
       <div style={styles.hero}>
         <div>
-          <h1 style={styles.heading}>Welcome Back 👋</h1>
-          <p style={styles.subheading}>
-            Manage projects, hire freelancers, and track progress efficiently.
-          </p>
+          <h1>👨‍💼 Client Dashboard</h1>
+          <p>Manage projects and hire freelancers.</p>
         </div>
 
-        <button style={styles.heroButton}>
-          + Post New Project
+        <button
+          style={styles.postBtn}
+          onClick={() => (window.location.href="/post-project")}
+        >
+          ➕ Post Project
         </button>
       </div>
 
-      {/* Stats Cards */}
-      <h2 style={styles.sectionTitle}>Dashboard Overview</h2>
-
-      <div style={styles.statsGrid}>
-        <div style={styles.statCard}>
-          <h3>📌</h3>
-          <h2>12</h2>
+      <div style={styles.stats}>
+        <div style={styles.card}>
+          <h2>{projects.length}</h2>
           <p>Projects Posted</p>
         </div>
 
-        <div style={styles.statCard}>
-          <h3>📨</h3>
-          <h2>28</h2>
+        <div style={styles.card}>
+          <h2>8</h2>
           <p>Proposals Received</p>
         </div>
 
-        <div style={styles.statCard}>
-          <h3>👨‍💻</h3>
-          <h2>6</h2>
-          <p>Hired Freelancers</p>
+        <div style={styles.card}>
+          <h2>4</h2>
+          <p>Freelancers Hired</p>
         </div>
 
-        <div style={styles.statCard}>
-          <h3>💰</h3>
-          <h2>₹75K</h2>
-          <p>Total Budget</p>
+        <div style={styles.card}>
+          <h2>12</h2>
+          <p>Messages</p>
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <h2 style={styles.sectionTitle}>Quick Actions</h2>
+      <h2>My Projects</h2>
 
-      <div style={styles.actionGrid}>
-        <div style={styles.actionCard}>📌 Post Project</div>
-        <div style={styles.actionCard}>👥 Manage Freelancers</div>
-        <div style={styles.actionCard}>📊 Track Progress</div>
-        <div style={styles.actionCard}>💬 Messages</div>
-        <div style={styles.actionCard}>📁 Project Files</div>
-        <div style={styles.actionCard}>⭐ Reviews</div>
-        <div style={styles.actionCard}>📈 Reports</div>
-        <div style={styles.actionCard}>🔔 Notifications</div>
+      <div style={styles.projectGrid}>
+        {projects.map((project) => (
+          <div key={project.project_id} style={styles.projectCard}>
+            <h3>{project.title}</h3>
+
+            <p>{project.description}</p>
+
+            <p>
+              <strong>Budget:</strong> ₹{project.budget}
+            </p>
+
+            <button
+              style={styles.button}
+              onClick={() => alert("View Proposals")}
+            >
+              View Proposals
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -63,79 +77,63 @@ function ClientDashboard() {
 
 const styles = {
   page: {
-    minHeight: "100vh",
-    backgroundColor: "#f0f9ff",
     padding: "30px",
+    minHeight: "100vh",
+    background: "#f0f9ff"
   },
 
   hero: {
-    background: "linear-gradient(135deg, #38bdf8, #0ea5e9)",
+    background: "linear-gradient(135deg,#0284c7,#38bdf8)",
     color: "white",
-    padding: "35px",
+    padding: "30px",
     borderRadius: "20px",
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "35px",
-    boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
+    alignItems: "center"
   },
 
-  heading: {
-    margin: 0,
-    fontSize: "32px",
-  },
-
-  subheading: {
-    marginTop: "10px",
-    fontSize: "16px",
-  },
-
-  heroButton: {
-    backgroundColor: "white",
-    color: "#0284c7",
-    border: "none",
+  postBtn: {
     padding: "12px 20px",
+    border: "none",
     borderRadius: "10px",
-    cursor: "pointer",
-    fontWeight: "bold",
+    cursor: "pointer"
   },
 
-  sectionTitle: {
-    color: "#0f172a",
-    marginBottom: "15px",
-  },
-
-  statsGrid: {
+  stats: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+    gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))",
     gap: "20px",
-    marginBottom: "40px",
+    marginTop: "25px"
   },
 
-  statCard: {
-    backgroundColor: "white",
-    borderRadius: "15px",
+  card: {
+    background: "white",
     padding: "20px",
-    textAlign: "center",
-    boxShadow: "0 4px 15px rgba(0,0,0,0.08)",
-  },
-
-  actionGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-    gap: "20px",
-  },
-
-  actionCard: {
-    backgroundColor: "white",
-    padding: "25px",
     borderRadius: "15px",
-    textAlign: "center",
-    fontWeight: "bold",
-    cursor: "pointer",
-    boxShadow: "0 4px 15px rgba(0,0,0,0.08)",
-    transition: "0.3s",
+    textAlign: "center"
   },
+
+  projectGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))",
+    gap: "20px",
+    marginTop: "20px"
+  },
+
+  projectCard: {
+    background: "white",
+    padding: "20px",
+    borderRadius: "15px"
+  },
+
+  button: {
+    padding: "10px",
+    border: "none",
+    background: "#0284c7",
+    color: "white",
+    borderRadius: "8px",
+    cursor: "pointer"
+  }
 };
 
 export default ClientDashboard;
