@@ -4,9 +4,19 @@ pipeline {
 
     stages {
 
-        stage('Build') {
+        stage('Checkout') {
             steps {
-                echo 'FreelanceHub Build Successful'
+                git branch: 'team-main',
+                    url: 'https://github.com/Sirivally0108/FreelanceHub.git'
+            }
+        }
+
+        stage('Docker Deploy') {
+            steps {
+
+                bat 'docker compose down'
+
+                bat 'docker compose up -d --build'
             }
         }
 

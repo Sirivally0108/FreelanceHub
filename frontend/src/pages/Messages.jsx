@@ -1,32 +1,74 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 
 function Messages() {
+
+  const senderId = 30; // Nagendra
+  const receiverId = 24; // Ravi
+
   const [messages, setMessages] = useState([]);
+  const [text, setText] = useState("");
+
+  const loadMessages = () => {
+    axios
+      .get(
+        `http://localhost:5000/api/messages/${senderId}/${receiverId}`
+      )
+      .then((res) => setMessages(res.data.data));
+  };
 
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/api/messages")
-      .then((res) => setMessages(res.data.data));
+    loadMessages();
   }, []);
 
+  const sendMessage = () => {
+
+    axios
+      .post("http://localhost:5000/api/messages", {
+        sender_id: senderId,
+        receiver_id: receiverId,
+        message: text,
+      })
+      .then(() => {
+        setText("");
+        loadMessages();
+      });
+  };
+
   return (
-    <div style={{ padding: "30px" }}>
-      <h1>Messages</h1>
+    <div style={{ padding: "20px" }}>
+      <h2>Project Discussion</h2>
 
-      {messages.map((msg) => (
-        <div key={msg.message_id}>
-          <p>
-            <strong>
-              {msg.sender_id}
-            </strong>
+      <div
+        style={{
+          border: "1px solid #ccc",
+          height: "400px",
+          overflowY: "scroll",
+          padding: "10px",
+        }}
+      >
+        {messages.map((msg) => (
+          <div key={msg.message_id}>
+            <b>
+              {msg.sender_id === senderId
+                ? "You"
+                : "Client"}
+            </b>
+            :
+            {msg.message}
+          </div>
+        ))}
+      </div>
 
-            : {msg.message}
-          </p>
+      <input
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="Type message..."
+      />
 
-          <hr />
-        </div>
-      ))}
+      <button onClick={sendMessage}>
+        Send
+      </button>
     </div>
   );
 }

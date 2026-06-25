@@ -3,30 +3,40 @@ import axios from "axios";
 
 function ClientDashboard() {
   const [projects, setProjects] = useState([]);
+  const [proposals, setProposals] = useState([]);
 
   useEffect(() => {
+
     axios
       .get("http://localhost:5000/api/projects")
       .then((res) => setProjects(res.data.data))
       .catch((err) => console.log(err));
+
+    axios
+      .get("http://localhost:5000/api/proposals/project/1")
+      .then((res) => setProposals(res.data.data))
+      .catch((err) => console.log(err));
+
   }, []);
 
   return (
     <div style={styles.page}>
+      {/* Hero */}
       <div style={styles.hero}>
         <div>
           <h1>👨‍💼 Client Dashboard</h1>
-          <p>Manage projects and hire freelancers.</p>
+          <p>Manage projects, hire freelancers and track progress.</p>
         </div>
 
         <button
           style={styles.postBtn}
-          onClick={() => (window.location.href="/post-project")}
+          onClick={() => (window.location.href = "/post-project")}
         >
           ➕ Post Project
         </button>
       </div>
 
+      {/* Stats */}
       <div style={styles.stats}>
         <div style={styles.card}>
           <h2>{projects.length}</h2>
@@ -34,7 +44,7 @@ function ClientDashboard() {
         </div>
 
         <div style={styles.card}>
-          <h2>8</h2>
+          <h2>{proposals.length}</h2>
           <p>Proposals Received</p>
         </div>
 
@@ -49,7 +59,41 @@ function ClientDashboard() {
         </div>
       </div>
 
-      <h2>My Projects</h2>
+      {/* Quick Actions */}
+      <h2 style={styles.title}>Quick Actions</h2>
+
+      <div style={styles.quickGrid}>
+        <button
+          style={styles.actionBtn}
+          onClick={() => (window.location.href = "/post-project")}
+        >
+          ➕ Post Project
+        </button>
+
+        <button
+          style={styles.actionBtn}
+          onClick={() => (window.location.href = "/my-projects")}
+        >
+          📂 My Projects
+        </button>
+
+        <button
+          style={styles.actionBtn}
+          onClick={() => (window.location.href = "/discussion")}
+        >
+          💬 Discussion Center
+        </button>
+
+        <button
+          style={styles.actionBtn}
+          onClick={() => alert("Proposals Page")}
+        >
+          📩 View Proposals
+        </button>
+      </div>
+
+      {/* My Projects */}
+      <h2 style={styles.title}>My Projects</h2>
 
       <div style={styles.projectGrid}>
         {projects.map((project) => (
@@ -62,12 +106,40 @@ function ClientDashboard() {
               <strong>Budget:</strong> ₹{project.budget}
             </p>
 
-            <button
-              style={styles.button}
-              onClick={() => alert("View Proposals")}
-            >
-              View Proposals
-            </button>
+            <p>
+              <strong>Status:</strong> {project.status}
+            </p>
+
+            {/* Progress */}
+            <div style={styles.progressBar}>
+              <div
+                style={{
+                  ...styles.progressFill,
+                  width:
+                    project.status === "completed"
+                      ? "100%"
+                      : project.status === "in_progress"
+                      ? "60%"
+                      : "20%"
+                }}
+              />
+            </div>
+
+            <div style={styles.btnRow}>
+              <button
+                style={styles.viewBtn}
+                onClick={() => (window.location.href="/proposals")}
+              >
+                View Proposals
+              </button>
+
+              <button
+                style={styles.chatBtn}
+                onClick={() => (window.location.href = "/discussion")}
+              >
+                Open Chat
+              </button>
+            </div>
           </div>
         ))}
       </div>
@@ -78,12 +150,12 @@ function ClientDashboard() {
 const styles = {
   page: {
     padding: "30px",
-    minHeight: "100vh",
-    background: "#f0f9ff"
+    background: "#f1f5f9",
+    minHeight: "100vh"
   },
 
   hero: {
-    background: "linear-gradient(135deg,#0284c7,#38bdf8)",
+    background: "linear-gradient(135deg,#2563eb,#38bdf8)",
     color: "white",
     padding: "30px",
     borderRadius: "20px",
@@ -93,15 +165,16 @@ const styles = {
   },
 
   postBtn: {
-    padding: "12px 20px",
     border: "none",
+    padding: "14px 24px",
     borderRadius: "10px",
-    cursor: "pointer"
+    cursor: "pointer",
+    fontWeight: "bold"
   },
 
   stats: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))",
+    gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
     gap: "20px",
     marginTop: "25px"
   },
@@ -110,26 +183,80 @@ const styles = {
     background: "white",
     padding: "20px",
     borderRadius: "15px",
-    textAlign: "center"
+    textAlign: "center",
+    boxShadow: "0 2px 10px rgba(0,0,0,0.1)"
+  },
+
+  title: {
+    marginTop: "30px",
+    marginBottom: "15px"
+  },
+
+  quickGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
+    gap: "20px"
+  },
+
+  actionBtn: {
+    background: "white",
+    border: "none",
+    padding: "20px",
+    borderRadius: "15px",
+    fontSize: "16px",
+    fontWeight: "bold",
+    cursor: "pointer",
+    boxShadow: "0 2px 10px rgba(0,0,0,0.1)"
   },
 
   projectGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))",
-    gap: "20px",
-    marginTop: "20px"
+    gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))",
+    gap: "20px"
   },
 
   projectCard: {
     background: "white",
     padding: "20px",
-    borderRadius: "15px"
+    borderRadius: "15px",
+    boxShadow: "0 2px 10px rgba(0,0,0,0.1)"
   },
 
-  button: {
+  progressBar: {
+    width: "100%",
+    height: "10px",
+    background: "#e2e8f0",
+    borderRadius: "10px",
+    marginTop: "10px"
+  },
+
+  progressFill: {
+    height: "10px",
+    borderRadius: "10px",
+    background: "#22c55e"
+  },
+
+  btnRow: {
+    display: "flex",
+    gap: "10px",
+    marginTop: "15px"
+  },
+
+  viewBtn: {
+    flex: 1,
     padding: "10px",
     border: "none",
-    background: "#0284c7",
+    background: "#2563eb",
+    color: "white",
+    borderRadius: "8px",
+    cursor: "pointer"
+  },
+
+  chatBtn: {
+    flex: 1,
+    padding: "10px",
+    border: "none",
+    background: "#22c55e",
     color: "white",
     borderRadius: "8px",
     cursor: "pointer"

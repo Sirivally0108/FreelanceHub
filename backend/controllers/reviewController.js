@@ -1,11 +1,30 @@
-exports.getReviews = (req, res) => {
-    res.json({
-        message: "Reviews retrieved successfully"
-    });
-};
+const pool = require("../config/db");
 
-exports.createReview = (req, res) => {
+exports.getReviewsByFreelancer = async (req, res) => {
+  try {
+
+    const { id } = req.params;
+
+    const result = await pool.query(
+      `
+      SELECT *
+      FROM reviews
+      WHERE freelancer_id=$1
+      `,
+      [id]
+    );
+
     res.json({
-        message: "Review submitted successfully"
+      success: true,
+      data: result.rows
     });
+
+  } catch (error) {
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+
+  }
 };

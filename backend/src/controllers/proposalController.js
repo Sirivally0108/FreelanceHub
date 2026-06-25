@@ -12,7 +12,22 @@ exports.submitProposal = async (req, res) => {
             proposal_text,
             proposed_budget
         } = req.body;
+        const existing = await pool.query(
+        `
+        SELECT *
+        FROM proposals
+        WHERE project_id=$1
+        AND freelancer_id=$2
+        `,
+        [project_id, freelancer_id]
+        );
 
+        if(existing.rows.length > 0){
+        return res.status(400).json({
+            success:false,
+            message:"Already Applied"
+        });
+        }
         const result = await pool.query(
             `
             INSERT INTO proposals
@@ -113,5 +128,32 @@ exports.getProposalsByFreelancer = async (req, res) => {
       message: error.message,
     });
 
+  }
+};
+exports.updateProposalStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const result = await pool.query(
+      `
+      UPDATE proposals
+      SET status=$1
+      WHERE proposal_id=$2
+      RETURNING *
+      `,
+      [status, id]
+    );
+
+    res.json({
+      success: true,
+      data: result.rows[0]
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };

@@ -1,13 +1,11 @@
-const express = require('express');
+const express = require("express");
+
 const router = express.Router();
 
 const {
-    getReviews,
-    createReview
-} = require('../controllers/reviewController');
+  getReviewsByFreelancer
+} = require("../controllers/reviewController");
 
-router.get('/', getReviews);
-
-router.post('/', createReview);
+router.get("/freelancer/:id", getReviewsByFreelancer);
 
 module.exports = router;

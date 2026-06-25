@@ -1,63 +1,94 @@
 import { useState } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 function Login() {
-  const [role, setRole] = useState("freelancer");
   const navigate = useNavigate();
 
-  const handleLogin = () => {
-    localStorage.setItem("role", role);
-    navigate("/dashboard");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = async () => {
+    try {
+
+      const res = await axios.post(
+        "http://localhost:5000/api/auth/login",
+        {
+          email,
+          password
+        }
+      );
+
+      localStorage.setItem(
+        "token",
+        res.data.token
+      );
+
+      localStorage.setItem(
+        "user",
+        JSON.stringify(res.data.user)
+      );
+
+      alert("Login Successful");
+
+      if (res.data.user.role === "client") {
+        navigate("/client-dashboard");
+      } else {
+        navigate("/freelancer-dashboard");
+      }
+
+    } catch (error) {
+
+      console.log(error);
+
+      alert(
+        error.response?.data?.message ||
+        "Login Failed"
+      );
+    }
   };
 
   return (
     <div style={styles.page}>
       <div style={styles.container}>
-        {/* Left Section */}
+
         <div style={styles.left}>
-          <h1 style={styles.brand}>FreelanceHub 🚀</h1>
+          <h1 style={styles.brand}>
+            FreelanceHub 🚀
+          </h1>
 
           <h2 style={styles.tagline}>
             Connect, Collaborate & Grow
           </h2>
 
           <p style={styles.description}>
-            Join thousands of freelancers and clients building amazing
-            projects together.
+            Join thousands of freelancers and clients.
           </p>
-
-          <div style={styles.features}>
-            <p>✅ Find exciting freelance opportunities</p>
-            <p>✅ Hire talented professionals</p>
-            <p>✅ Manage projects efficiently</p>
-            <p>✅ Grow your professional network</p>
-          </div>
         </div>
 
-        {/* Login Card */}
         <div style={styles.card}>
+
           <h2>Welcome Back 👋</h2>
 
           <input
             type="email"
-            placeholder="Email Address"
+            placeholder="Email"
+            value={email}
+            onChange={(e) =>
+              setEmail(e.target.value)
+            }
             style={styles.input}
           />
 
           <input
             type="password"
             placeholder="Password"
+            value={password}
+            onChange={(e) =>
+              setPassword(e.target.value)
+            }
             style={styles.input}
           />
-
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            style={styles.input}
-          >
-            <option value="freelancer">Freelancer</option>
-            <option value="client">Client</option>
-          </select>
 
           <button
             onClick={handleLogin}
@@ -68,8 +99,11 @@ function Login() {
 
           <p style={{ marginTop: "15px" }}>
             Don't have an account?
-            <a href="/register"> Register</a>
+            <a href="/register">
+              {" "}Register
+            </a>
           </p>
+
         </div>
       </div>
     </div>
@@ -77,85 +111,44 @@ function Login() {
 }
 
 const styles = {
-  page: {
-    minHeight: "100vh",
-    background:
-      "linear-gradient(135deg, #e0f7ff, #f8fdff)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: "20px",
+  page:{
+    minHeight:"100vh",
+    display:"flex",
+    justifyContent:"center",
+    alignItems:"center",
+    background:"#f0f9ff"
   },
-
-  container: {
-    display: "flex",
-    width: "100%",
-    maxWidth: "1100px",
-    backgroundColor: "white",
-    borderRadius: "20px",
-    overflow: "hidden",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.12)",
+  container:{
+    width:"900px",
+    display:"flex",
+    background:"white",
+    borderRadius:"20px",
+    overflow:"hidden"
   },
-
-  left: {
-    flex: 1,
-    padding: "50px",
-    background: "linear-gradient(135deg, #38bdf8, #0ea5e9)",
-    color: "white",
+  left:{
+    flex:1,
+    padding:"40px",
+    background:"#0ea5e9",
+    color:"white"
   },
-
-  brand: {
-    fontSize: "42px",
-    marginBottom: "20px",
+  card:{
+    flex:1,
+    padding:"40px",
+    display:"flex",
+    flexDirection:"column"
   },
-
-  tagline: {
-    fontSize: "28px",
+  input:{
+    padding:"12px",
+    marginTop:"15px"
   },
-
-  description: {
-    marginTop: "20px",
-    lineHeight: "1.8",
-  },
-
-  features: {
-    marginTop: "30px",
-    lineHeight: "2",
-  },
-
-  card: {
-    flex: 1,
-    padding: "50px",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-  },
-
-  input: {
-    padding: "14px",
-    marginTop: "15px",
-    borderRadius: "10px",
-    border: "1px solid #dbeafe",
-    fontSize: "16px",
-  },
-
-  loginBtn: {
-    marginTop: "20px",
-    backgroundColor: "#0ea5e9",
-    color: "white",
-    border: "none",
-    padding: "14px",
-    borderRadius: "10px",
-    cursor: "pointer",
-    fontWeight: "bold",
-    fontSize: "16px",
-  },
-
-  footerText: {
-    marginTop: "20px",
-    textAlign: "center",
-    color: "#64748b",
-  },
+  loginBtn:{
+    marginTop:"20px",
+    padding:"12px",
+    background:"#0284c7",
+    color:"white",
+    border:"none",
+    cursor:"pointer"
+  }
 };
 
 export default Login;

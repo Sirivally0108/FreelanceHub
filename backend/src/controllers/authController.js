@@ -1,39 +1,46 @@
 const pool = require("../config/db");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
+// REGISTER
 exports.register = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
+
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const result = await pool.query(
       `
       INSERT INTO users(name,email,password,role)
       VALUES($1,$2,$3,$4)
-      RETURNING *
+      RETURNING user_id,name,email,role
       `,
-      [name, email, password, role]
+      [name, email, hashedPassword, role]
     );
 
-    return res.status(201).json({
+    res.status(201).json({
       success: true,
-      message: "Registration Successful!",
-      user: result.rows[0],
+      message: "Registration Successful",
+      user: result.rows[0]
     });
+
   } catch (error) {
-    console.error("REGISTER ERROR:", error);
 
     if (error.code === "23505") {
       return res.status(400).json({
         success: false,
-        message: "Email already registered",
+        message: "Email already exists"
       });
     }
 
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
-      message: error.message,
+      message: error.message
     });
   }
 };
+
+
 
 exports.login = async (req, res) => {
   try {
@@ -41,10 +48,9 @@ exports.login = async (req, res) => {
 
     const result = await pool.query(
       `
-      SELECT *
+      SELECT user_id, name, email, role
       FROM users
-      WHERE email=$1
-      AND password=$2
+      WHERE email=$1 AND password=$2
       `,
       [email, password]
     );
@@ -56,15 +62,15 @@ exports.login = async (req, res) => {
       });
     }
 
-    return res.json({
+    const user = result.rows[0];
+
+    res.json({
       success: true,
-      message: "Login Successful!",
-      user: result.rows[0],
+      message: "Login successful",
+      user,
     });
   } catch (error) {
-    console.error("LOGIN ERROR:", error);
-
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
       message: error.message,
     });

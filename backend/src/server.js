@@ -9,3 +9,7 @@ console.log("=== USING SRC SERVER ===");
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+app.use(
+"/api/dashboard",
+require("./routes/dashboardRoutes")
+);
