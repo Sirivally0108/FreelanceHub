@@ -1,303 +1,434 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-const user = JSON.parse(localStorage.getItem("user"));
-const freelancerId = user?.id;
 
 function FreelancerDashboard() {
+
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (!user) {
+    window.location = "/login";
+    return null;
+  }
+
+  const freelancerId = user.user_id;
+
   const [projects, setProjects] = useState([]);
+  const [reviews, setReviews] = useState([]);
   const [proposals, setProposals] = useState([]);
-  const [appliedProjects,setAppliedProjects] = useState([]);
+  const [appliedProjects, setAppliedProjects] = useState([]);
+  const [earnings, setEarnings] = useState(0);
+
   useEffect(() => {
-
-    axios
-      .get("http://localhost:5000/api/projects")
-      .then((res) => setProjects(res.data.data))
-      .catch((err) => console.log(err));
-
-    axios
-      .get("http://localhost:5000/api/proposals/freelancer/4")
-      .then((res) => setProposals(res.data.data))
-      .catch((err) => console.log(err));
-    axios
-    .get("http://localhost:5000/api/proposals/freelancer/4")
-    .then((res)=>{
-      setProposals(res.data.data);
-
-      const ids = res.data.data.map(
-        p => p.project_id
-      );
-
-      setAppliedProjects(ids);
-    });
+    loadDashboard();
   }, []);
-  const applyProject = async (project) => {
+
+  const loadDashboard = async () => {
     try {
-      await axios.post("http://localhost:5000/api/proposals", {
-        project_id: project.project_id,
-        freelancer_id: freelancerId,
-        proposal_text: `Application for ${project.title}`,
-        proposed_budget: project.budget
-      });
 
-      alert("Applied successfully");
+      const projectRes = await axios.get(
+        "http://localhost:5000/api/projects"
+      );
+      setProjects(projectRes.data.data);
 
-      // refresh proposals from DB
-      const res = await axios.get(
+      const proposalRes = await axios.get(
         `http://localhost:5000/api/proposals/freelancer/${freelancerId}`
       );
 
-      setProposals(res.data.data);
+      setProposals(proposalRes.data.data);
+
+      setAppliedProjects(
+        proposalRes.data.data.map((p) => p.project_id)
+      );
+
+      const reviewRes = await axios.get(
+        `http://localhost:5000/api/reviews/${freelancerId}`
+      );
+
+      setReviews(reviewRes.data.data);
+
+      try {
+
+        const earningRes = await axios.get(
+          `http://localhost:5000/api/proposals/earnings/${freelancerId}`
+        );
+
+        setEarnings(earningRes.data.earnings);
+
+      } catch {}
 
     } catch (err) {
-      alert(err.response?.data?.message || "Already applied or error");
+      console.log(err);
     }
   };
+
+  const avgRating =
+    reviews.length > 0
+      ? (
+          reviews.reduce((sum, r) => sum + Number(r.rating), 0) /
+          reviews.length
+        ).toFixed(1)
+      : 0;
+
+  const applyProject = async (project) => {
+
+    try {
+
+      await axios.post(
+
+        "http://localhost:5000/api/proposals",
+
+        {
+          project_id: project.project_id,
+          freelancer_id: freelancerId,
+          proposal_text: `Application for ${project.title}`,
+          proposed_budget: project.budget
+        },
+
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+          }
+        }
+
+      );
+
+      alert("Applied Successfully");
+
+      loadDashboard();
+
+    } catch (err) {
+
+      alert(
+        err.response?.data?.message ||
+        "Already Applied"
+      );
+
+    }
+
+  };
+
   return (
+
     <div style={styles.page}>
-      {/* Hero */}
+
+      {/* HERO */}
+
       <div style={styles.hero}>
+
         <div>
-          <h1>🚀 Freelancer Dashboard</h1>
-          <p>Track projects, ratings, earnings and client discussions.</p>
+
+          <h1 style={styles.heroTitle}>
+            👋 Welcome, {user.name}
+          </h1>
+
+          <p style={styles.heroText}>
+            Manage projects, clients and earnings from one place.
+          </p>
+
         </div>
 
-        <button
-          style={styles.heroBtn}
-          onClick={() => (window.location.href = "/projects")}
-        >
-          Browse Projects
-        </button>
+        <div style={{display:"flex",gap:"15px"}}>
+
+          <button
+            style={styles.heroBtn}
+            onClick={()=>window.location="/projects"}
+          >
+            🔍 Browse Projects
+          </button>
+
+          <button
+            style={styles.logout}
+            onClick={()=>{
+              localStorage.clear();
+              window.location="/login";
+            }}
+          >
+            🚪 Logout
+          </button>
+
+        </div>
+
       </div>
 
-      {/* Stats */}
+      {/* STATS */}
+
       <div style={styles.stats}>
-        <div style={styles.card}>
+
+        <div style={styles.statCard}>
+          <h1>📩</h1>
           <h2>{proposals.length}</h2>
           <p>Applied Projects</p>
         </div>
 
-        <div style={styles.card}>
-          <h2>2</h2>
+        <div style={styles.statCard}>
+          <h1>✅</h1>
+          <h2>
+            {
+              proposals.filter(
+                p=>p.status==="accepted"
+              ).length
+            }
+          </h2>
           <p>Completed Projects</p>
         </div>
 
-        <div style={styles.card}>
-          <h2>4.8 ⭐</h2>
+        <div style={styles.statCard}>
+          <h1>⭐</h1>
+          <h2>{avgRating}</h2>
           <p>Average Rating</p>
         </div>
 
-        <div style={styles.card}>
-          <h2>₹50,000</h2>
+        <div style={styles.statCard}>
+          <h1>💰</h1>
+          <h2>₹{earnings}</h2>
           <p>Total Earnings</p>
         </div>
+
       </div>
 
-      {/* Quick Actions */}
-      <h2 style={styles.title}>Quick Actions</h2>
+      {/* QUICK ACTIONS */}
+
+      <h2 style={styles.heading}>
+        Quick Actions
+      </h2>
 
       <div style={styles.quickGrid}>
+
         <button
           style={styles.actionBtn}
-          onClick={() => (window.location.href = "/applied-projects")}
+          onClick={()=>window.location="/applied-projects"}
         >
           📩 Applied Projects
         </button>
 
         <button
           style={styles.actionBtn}
-          onClick={() => (window.location.href = "/discussion")}
+          onClick={()=>window.location="/discussion"}
         >
           💬 Discussion Center
         </button>
 
         <button
           style={styles.actionBtn}
-          onClick={() => (window.location.href = "/projects")}
+          onClick={()=>window.location="/messages"}
         >
-          🔎 Browse Projects
+          📨 Messages
         </button>
 
         <button
           style={styles.actionBtn}
-          onClick={() => (window.location.href = "/reviews")}
+          onClick={()=>window.location="/reviews"}
         >
           ⭐ Reviews
         </button>
+
       </div>
 
-      {/* Current Projects */}
-      <h2 style={styles.title}>Available Projects</h2>
+      {/* PROJECTS */}
+
+      <h2 style={styles.heading}>
+        Available Projects
+      </h2>
 
       <div style={styles.projectGrid}>
-        {projects.map((project) => (
-          <div key={project.project_id} style={styles.projectCard}>
-            <h3>{project.title}</h3>
 
-            <p>{project.description}</p>
+        {
+          projects
 
-            <p>
-              <strong>Budget:</strong> ₹{project.budget}
-            </p>
+          .filter(
+            project=>!appliedProjects.includes(project.project_id)
+          )
 
-            <p>
-              <strong>Status:</strong> {project.status}
-            </p>
+          .map(project=>(
 
-            <div style={styles.progressBar}>
-              <div
-                style={{
-                  ...styles.progressFill,
-                  width:
-                    project.status === "completed"
-                      ? "100%"
-                      : project.status === "in_progress"
-                      ? "60%"
-                      : "20%"
-                }}
-              />
-            </div>
+            <div
+              key={project.project_id}
+              style={styles.projectCard}
+            >
 
-            <div style={styles.btnRow}>
+              <h2>{project.title}</h2>
+
+              <p>{project.description}</p>
+
+              <p>
+                <b>Budget:</b> ₹{project.budget}
+              </p>
+
+              <p>
+                <b>Status:</b> {project.status}
+              </p>
+
+              <div style={styles.progressBar}>
+
+                <div
+                  style={{
+                    ...styles.progressFill,
+
+                    width:
+
+                    project.status==="completed"
+                    ?"100%"
+                    :project.status==="in_progress"
+                    ?"60%"
+                    :"20%"
+
+                  }}
+                />
+
+              </div>
+
               <button
                 style={styles.applyBtn}
-                disabled={appliedProjects.includes(project.project_id)}
-                onClick={() => applyProject(project)}
-                >
-                {
-                appliedProjects.includes(project.project_id)
-                ? "Applied"
-                : "Apply"
-                }
-              </button>
-
-              <button
-                style={styles.chatBtn}
-                onClick={() => (window.location.href = "/discussion")}
+                onClick={()=>applyProject(project)}
               >
-                Chat
+                🚀 Apply Now
               </button>
+
             </div>
-          </div>
-        ))}
+
+          ))
+        }
+
       </div>
+
     </div>
+
   );
+
 }
-
 const styles = {
-  page: {
-    padding: "30px",
-    minHeight: "100vh",
-    background: "#f0f9ff"
+
+  page:{
+    minHeight:"100vh",
+    background:"#eef6ff",
+    padding:"30px",
+    fontFamily:"Arial, sans-serif"
   },
 
-  hero: {
-    background: "linear-gradient(135deg,#0ea5e9,#38bdf8)",
-    color: "white",
-    padding: "30px",
-    borderRadius: "20px",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center"
+  hero:{
+    background:"linear-gradient(135deg,#0f172a,#2563eb)",
+    color:"white",
+    borderRadius:"20px",
+    padding:"40px",
+    display:"flex",
+    justifyContent:"space-between",
+    alignItems:"center",
+    boxShadow:"0 10px 25px rgba(0,0,0,.2)"
   },
 
-  heroBtn: {
-    padding: "12px 20px",
-    border: "none",
-    borderRadius: "10px",
-    cursor: "pointer",
-    fontWeight: "bold"
+  heroTitle:{
+    margin:0,
+    fontSize:"38px",
+    fontWeight:"700"
   },
 
-  stats: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
-    gap: "20px",
-    marginTop: "25px"
+  heroText:{
+    marginTop:"10px",
+    fontSize:"18px",
+    opacity:.9
   },
 
-  card: {
-    background: "white",
-    padding: "20px",
-    borderRadius: "15px",
-    textAlign: "center",
-    boxShadow: "0 2px 10px rgba(0,0,0,0.1)"
+  heroBtn:{
+    background:"white",
+    color:"#2563eb",
+    border:"none",
+    padding:"12px 24px",
+    borderRadius:"10px",
+    cursor:"pointer",
+    fontWeight:"bold",
+    fontSize:"15px"
   },
 
-  title: {
-    marginTop: "30px",
-    marginBottom: "15px"
+  logout:{
+    background:"#ef4444",
+    color:"white",
+    border:"none",
+    padding:"12px 24px",
+    borderRadius:"10px",
+    cursor:"pointer",
+    fontWeight:"bold",
+    fontSize:"15px"
   },
 
-  quickGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
-    gap: "20px"
+  heading:{
+    marginTop:"35px",
+    marginBottom:"20px",
+    color:"#1e293b"
   },
 
-  actionBtn: {
-    background: "white",
-    border: "none",
-    padding: "20px",
-    borderRadius: "15px",
-    cursor: "pointer",
-    fontWeight: "bold",
-    fontSize: "16px",
-    boxShadow: "0 2px 10px rgba(0,0,0,0.1)"
+  stats:{
+    display:"grid",
+    gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",
+    gap:"20px",
+    marginTop:"30px"
   },
 
-  projectGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))",
-    gap: "20px"
+  statCard:{
+    background:"white",
+    borderRadius:"18px",
+    padding:"25px",
+    textAlign:"center",
+    boxShadow:"0 8px 20px rgba(0,0,0,.08)",
+    transition:"0.3s"
   },
 
-  projectCard: {
-    background: "white",
-    padding: "20px",
-    borderRadius: "15px",
-    boxShadow: "0 2px 10px rgba(0,0,0,0.1)"
+  quickGrid:{
+    display:"grid",
+    gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",
+    gap:"20px"
   },
 
-  progressBar: {
-    width: "100%",
-    height: "10px",
-    background: "#e2e8f0",
-    borderRadius: "10px",
-    marginTop: "10px"
+  actionBtn:{
+    background:"white",
+    border:"none",
+    borderRadius:"18px",
+    padding:"25px",
+    cursor:"pointer",
+    fontWeight:"bold",
+    fontSize:"17px",
+    boxShadow:"0 8px 18px rgba(0,0,0,.08)"
   },
 
-  progressFill: {
-    height: "10px",
-    background: "#22c55e",
-    borderRadius: "10px"
+  projectGrid:{
+    display:"grid",
+    gridTemplateColumns:"repeat(auto-fit,minmax(330px,1fr))",
+    gap:"25px"
   },
 
-  btnRow: {
-    display: "flex",
-    gap: "10px",
-    marginTop: "15px"
+  projectCard:{
+    background:"white",
+    borderRadius:"20px",
+    padding:"25px",
+    boxShadow:"0 8px 20px rgba(0,0,0,.08)"
   },
 
-  applyBtn: {
-    flex: 1,
-    padding: "10px",
-    border: "none",
-    background: "#0284c7",
-    color: "white",
-    borderRadius: "8px",
-    cursor: "pointer"
+  progressBar:{
+    width:"100%",
+    height:"10px",
+    background:"#dbeafe",
+    borderRadius:"20px",
+    overflow:"hidden",
+    marginTop:"15px",
+    marginBottom:"20px"
   },
 
-  chatBtn: {
-    flex: 1,
-    padding: "10px",
-    border: "none",
-    background: "#22c55e",
-    color: "white",
-    borderRadius: "8px",
-    cursor: "pointer"
+  progressFill:{
+    height:"100%",
+    background:"#22c55e"
+  },
+
+  applyBtn:{
+    width:"100%",
+    background:"#2563eb",
+    color:"white",
+    border:"none",
+    padding:"14px",
+    borderRadius:"10px",
+    cursor:"pointer",
+    fontWeight:"bold",
+    fontSize:"16px"
   }
+
 };
 
 export default FreelancerDashboard;

@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 
 import Navbar from "./Components/Navbar";
 
@@ -19,7 +20,21 @@ import Proposals from "./pages/Proposals";
 import MyProjects from "./pages/MyProjects";
 import AppliedProjects from "./pages/AppliedProjects";
 import Reviews from "./pages/Reviews";
+function PrivateRoute({children,role}){
 
+const user=JSON.parse(localStorage.getItem("user"));
+
+if(!user){
+return <Navigate to="/login"/>;
+}
+
+if(role && user.role!==role){
+return <Navigate to="/dashboard"/>;
+}
+
+return children;
+
+}
 export default function App() {
   return (
     <BrowserRouter>
@@ -31,17 +46,81 @@ export default function App() {
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/reviews" element={<Reviews />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/applied-projects" element={<AppliedProjects />} />
-        <Route path="/client-dashboard" element={<ClientDashboard />} />
-        <Route path="/freelancer-dashboard" element={<FreelancerDashboard />} />
+<Route
+  path="/dashboard"
+  element={
+    <PrivateRoute>
+      <Dashboard />
+    </PrivateRoute>
+  }
+/>
+
+<Route
+  path="/freelancer-dashboard"
+  element={
+    <PrivateRoute>
+      <FreelancerDashboard />
+    </PrivateRoute>
+  }
+/>
+
+<Route
+  path="/client-dashboard"
+  element={
+    <PrivateRoute>
+      <ClientDashboard />
+    </PrivateRoute>
+  }
+/>
+
+<Route
+  path="/projects"
+  element={
+    <PrivateRoute>
+      <Projects />
+    </PrivateRoute>
+  }
+/>
+
+<Route
+  path="/discussion"
+  element={
+    <PrivateRoute>
+      <Discussion />
+    </PrivateRoute>
+  }
+/>
+
+<Route
+  path="/messages"
+  element={
+    <PrivateRoute>
+      <Messages />
+    </PrivateRoute>
+  }
+/>
+
+<Route
+  path="/reviews"
+  element={
+    <PrivateRoute>
+      <Reviews />
+    </PrivateRoute>
+  }
+/>
+
+<Route
+  path="/applied-projects"
+  element={
+    <PrivateRoute>
+      <AppliedProjects />
+    </PrivateRoute>
+  }
+/>
         <Route path="/proposals" element={<Proposals />} />
-        <Route path="/projects" element={<Projects />} />
+
         <Route path="/post-project" element={<PostProject />} />
 
-        <Route path="/messages" element={<Messages />} />
-        <Route path="/discussion" element={<Discussion />} />
       </Routes>
     </BrowserRouter>
   );

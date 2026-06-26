@@ -109,23 +109,35 @@ exports.getProposalsByFreelancer = async (req, res) => {
 
     const result = await pool.query(
       `
-      SELECT *
-      FROM proposals
-      WHERE freelancer_id=$1
+      SELECT
+        p.proposal_id,
+        p.project_id,
+        p.status,
+        p.submitted_at,
+        p.proposal_text,
+        p.proposed_budget,
+        pr.title,
+        pr.description,
+        pr.budget
+      FROM proposals p
+      JOIN projects pr
+      ON p.project_id = pr.project_id
+      WHERE p.freelancer_id=$1
+      ORDER BY p.submitted_at DESC
       `,
       [id]
     );
 
     res.json({
       success: true,
-      data: result.rows,
+      data: result.rows
     });
 
   } catch (error) {
 
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error.message
     });
 
   }
@@ -157,3 +169,26 @@ exports.updateProposalStatus = async (req, res) => {
     });
   }
 };
+exports.getFreelancerEarnings=async(req,res)=>{
+
+const {id}=req.params;
+
+const result=await pool.query(
+
+`
+SELECT
+COALESCE(SUM(pr.budget),0) earnings
+FROM proposals p
+JOIN projects pr
+ON p.project_id=pr.project_id
+WHERE
+p.freelancer_id=$1
+AND p.status='accepted'
+`,
+[id]
+
+);
+
+res.json(result.rows[0]);
+
+}

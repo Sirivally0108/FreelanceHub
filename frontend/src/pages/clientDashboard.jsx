@@ -2,30 +2,89 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 
 function ClientDashboard() {
-  const [projects, setProjects] = useState([]);
-  const [proposals, setProposals] = useState([]);
+  const user = JSON.parse(localStorage.getItem("user"));
 
-  useEffect(() => {
+  if (!user) {
+    window.location="/login";
+    return null;
+  }
 
-    axios
-      .get("http://localhost:5000/api/projects")
-      .then((res) => setProjects(res.data.data))
-      .catch((err) => console.log(err));
+  const clientId = user.user_id;
 
-    axios
-      .get("http://localhost:5000/api/proposals/project/1")
-      .then((res) => setProposals(res.data.data))
-      .catch((err) => console.log(err));
+  const [projects,setProjects]=useState([]);
+  const [proposals,setProposals]=useState([]);
+  const [messages,setMessages]=useState([]);
 
-  }, []);
+  useEffect(()=>{
+
+loadDashboard();
+
+},[]);
+
+const loadDashboard=async()=>{
+
+try{
+
+const projectRes=await axios.get(
+"http://localhost:5000/api/projects"
+);
+
+const myProjects=
+
+projectRes.data.data.filter(
+
+p=>p.client_id===clientId
+
+);
+
+setProjects(myProjects);
+
+let all=[];
+
+for(const p of myProjects){
+
+const res=await axios.get(
+
+`http://localhost:5000/api/proposals/project/${p.project_id}`
+
+);
+
+all=[...all,...res.data.data];
+
+}
+
+setProposals(all);
+
+try{
+
+const msg=await axios.get(
+
+`http://localhost:5000/api/messages/${clientId}`
+
+);
+
+setMessages(msg.data.data);
+
+}catch{}
+
+}catch(err){
+
+console.log(err);
+
+}
+
+};
 
   return (
     <div style={styles.page}>
       {/* Hero */}
       <div style={styles.hero}>
         <div>
-          <h1>👨‍💼 Client Dashboard</h1>
-          <p>Manage projects, hire freelancers and track progress.</p>
+          <h1>👋 Welcome, {user.name}</h1>
+
+<p>
+Manage your projects and hire talented freelancers.
+</p>
         </div>
 
         <button
@@ -49,12 +108,25 @@ function ClientDashboard() {
         </div>
 
         <div style={styles.card}>
-          <h2>4</h2>
-          <p>Freelancers Hired</p>
+          <h2>
+
+{
+
+proposals.filter(
+
+p=>p.status==="accepted"
+
+).length
+
+}
+
+</h2>
+
+<p>Freelancers Hired</p>
         </div>
 
         <div style={styles.card}>
-          <h2>12</h2>
+          <h2>{messages.length}</h2>
           <p>Messages</p>
         </div>
       </div>
@@ -63,19 +135,45 @@ function ClientDashboard() {
       <h2 style={styles.title}>Quick Actions</h2>
 
       <div style={styles.quickGrid}>
-        <button
-          style={styles.actionBtn}
-          onClick={() => (window.location.href = "/post-project")}
-        >
-          ➕ Post Project
-        </button>
+        <div style={{display:"flex",gap:"15px"}}>
 
-        <button
-          style={styles.actionBtn}
-          onClick={() => (window.location.href = "/my-projects")}
-        >
-          📂 My Projects
-        </button>
+<button
+style={styles.postBtn}
+onClick={()=>window.location="/post-project"}
+>
+
+➕ Post Project
+
+</button>
+
+<button
+
+style={{
+
+background:"red",
+color:"white",
+padding:"14px 20px",
+border:"none",
+borderRadius:"10px",
+cursor:"pointer"
+
+}}
+
+onClick={()=>{
+
+localStorage.clear();
+
+window.location="/login";
+
+}}
+
+>
+
+Logout
+
+</button>
+
+</div>
 
         <button
           style={styles.actionBtn}
@@ -91,62 +189,98 @@ function ClientDashboard() {
           📩 View Proposals
         </button>
       </div>
+{/* My Projects */}
 
-      {/* My Projects */}
-      <h2 style={styles.title}>My Projects</h2>
+<h2 style={styles.title}>My Projects</h2>
 
-      <div style={styles.projectGrid}>
-        {projects.map((project) => (
-          <div key={project.project_id} style={styles.projectCard}>
-            <h3>{project.title}</h3>
+<div style={styles.projectGrid}>
 
-            <p>{project.description}</p>
+  {projects.length === 0 ? (
 
-            <p>
-              <strong>Budget:</strong> ₹{project.budget}
-            </p>
+    <div
+      style={{
+        gridColumn: "1 / -1",
+        background: "white",
+        padding: "40px",
+        borderRadius: "15px",
+        textAlign: "center",
+        boxShadow: "0 2px 10px rgba(0,0,0,0.1)"
+      }}
+    >
+      <h2>No Projects Posted Yet 📂</h2>
 
-            <p>
-              <strong>Status:</strong> {project.status}
-            </p>
+      <p>Click "Post Project" to create your first project.</p>
 
-            {/* Progress */}
-            <div style={styles.progressBar}>
-              <div
-                style={{
-                  ...styles.progressFill,
-                  width:
-                    project.status === "completed"
-                      ? "100%"
-                      : project.status === "in_progress"
-                      ? "60%"
-                      : "20%"
-                }}
-              />
-            </div>
-
-            <div style={styles.btnRow}>
-              <button
-                style={styles.viewBtn}
-                onClick={() => (window.location.href="/proposals")}
-              >
-                View Proposals
-              </button>
-
-              <button
-                style={styles.chatBtn}
-                onClick={() => (window.location.href = "/discussion")}
-              >
-                Open Chat
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
     </div>
-  );
-}
 
+  ) : (
+
+    projects.map((project) => (
+
+      <div
+        key={project.project_id}
+        style={styles.projectCard}
+      >
+
+        <h3>{project.title}</h3>
+
+        <p>{project.description}</p>
+
+        <p>
+          <strong>Budget:</strong> ₹{project.budget}
+        </p>
+
+        <p>
+          <strong>Status:</strong> {project.status}
+        </p>
+
+        <div style={styles.progressBar}>
+
+          <div
+            style={{
+              ...styles.progressFill,
+              width:
+                project.status === "completed"
+                  ? "100%"
+                  : project.status === "in_progress"
+                  ? "60%"
+                  : "20%"
+            }}
+          />
+
+        </div>
+
+        <div style={styles.btnRow}>
+
+          <button
+            style={styles.viewBtn}
+            onClick={() => (window.location.href = "/proposals")}
+          >
+            View Proposals
+          </button>
+
+          <button
+            style={styles.chatBtn}
+            onClick={() => (window.location.href = "/discussion")}
+          >
+            Open Chat
+          </button>
+
+        </div>
+
+      </div>
+
+    ))
+
+  )}
+
+</div>
+
+</div>
+
+);
+
+}
 const styles = {
   page: {
     padding: "30px",

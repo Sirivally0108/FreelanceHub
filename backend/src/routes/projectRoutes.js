@@ -1,5 +1,5 @@
 const express = require('express');
-
+const auth = require("../middleware/auth");
 const router = express.Router();
 
 const {
@@ -8,7 +8,7 @@ const {
     getProjectById
 } = require('../controllers/projectController');
 
-router.post('/', createProject);
+router.post("/", auth, createProject);
 
 router.get('/', getProjects);
 

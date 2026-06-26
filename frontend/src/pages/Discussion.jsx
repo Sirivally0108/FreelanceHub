@@ -1,115 +1,218 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
-function Discussion() {
+function Discussion(){
 
-  const [messages, setMessages] = useState([
-    {
-      sender: "Client",
-      text: "Hello, when can you start?"
-    },
-    {
-      sender: "Freelancer",
-      text: "I can start tomorrow."
-    }
-  ]);
+const user=JSON.parse(localStorage.getItem("user"));
 
-  const [newMessage, setNewMessage] = useState("");
+const userId=user.user_id;
 
-  const sendMessage = () => {
+const receiverId=user.role==="client"?6:1;
 
-    if (!newMessage.trim()) return;
+const [messages,setMessages]=useState([]);
+const [text,setText]=useState("");
 
-    setMessages([
-      ...messages,
-      {
-        sender: "You",
-        text: newMessage
-      }
-    ]);
+const loadMessages=()=>{
 
-    setNewMessage("");
-  };
+axios
+.get(
+`http://localhost:5000/api/messages/${userId}/${receiverId}`
+)
+.then(res=>setMessages(res.data.data));
 
-  return (
-    <div style={styles.page}>
+};
 
-      <h1>💬 Project Discussion</h1>
+useEffect(()=>{
 
-      <div style={styles.chatBox}>
-        {messages.map((msg, index) => (
-          <div key={index} style={styles.message}>
-            <strong>{msg.sender}: </strong>
-            {msg.text}
-          </div>
-        ))}
-      </div>
+loadMessages();
 
-      <div style={styles.inputArea}>
-        <input
-          type="text"
-          placeholder="Type message..."
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          style={styles.input}
-        />
+},[]);
 
-        <button
-          style={styles.sendBtn}
-          onClick={sendMessage}
-        >
-          Send
-        </button>
-      </div>
+const send=async()=>{
 
-    </div>
-  );
+if(text==="") return;
+
+await axios.post(
+
+"http://localhost:5000/api/messages",
+
+{
+
+sender_id:userId,
+
+receiver_id:receiverId,
+
+message:text
+
+},
+
+{
+
+headers:{
+
+Authorization:`Bearer ${localStorage.getItem("token")}`
+
 }
 
-const styles = {
+}
 
-  page: {
-    padding: "30px",
-    minHeight: "100vh",
-    background: "#f0f9ff"
-  },
+);
 
-  chatBox: {
-    background: "white",
-    height: "500px",
-    overflowY: "auto",
-    borderRadius: "15px",
-    padding: "20px",
-    marginTop: "20px"
-  },
+setText("");
 
-  message: {
-    marginBottom: "15px",
-    padding: "10px",
-    background: "#e0f2fe",
-    borderRadius: "10px"
-  },
+loadMessages();
 
-  inputArea: {
-    display: "flex",
-    marginTop: "20px",
-    gap: "10px"
-  },
+};
 
-  input: {
-    flex: 1,
-    padding: "12px",
-    borderRadius: "10px",
-    border: "1px solid #ccc"
-  },
+return(
 
-  sendBtn: {
-    background: "#0284c7",
-    color: "white",
-    border: "none",
-    padding: "12px 20px",
-    borderRadius: "10px",
-    cursor: "pointer"
-  }
+<div style={styles.page}>
+
+<h1>💬 Discussion Center</h1>
+
+<div style={styles.chat}>
+
+{
+
+messages.length===0 ?
+
+<div style={styles.empty}>
+
+No Messages Yet
+
+</div>
+
+:
+
+messages.map(msg=>(
+
+<div
+
+key={msg.message_id}
+
+style={
+
+msg.sender_id===userId
+
+?
+
+styles.mine
+
+:
+
+styles.other
+
+}
+
+>
+
+{msg.message}
+
+</div>
+
+))
+
+}
+
+</div>
+
+<div style={styles.bottom}>
+
+<input
+
+value={text}
+
+onChange={(e)=>setText(e.target.value)}
+
+placeholder="Type message..."
+
+style={styles.input}
+
+/>
+
+<button
+
+onClick={send}
+
+style={styles.btn}
+
+>
+
+Send
+
+</button>
+
+</div>
+
+</div>
+
+);
+
+}
+
+const styles={
+
+page:{
+padding:"30px",
+background:"#eef8ff",
+minHeight:"100vh"
+},
+
+chat:{
+background:"white",
+height:"450px",
+overflowY:"auto",
+padding:"20px",
+borderRadius:"15px",
+boxShadow:"0 4px 10px rgba(0,0,0,.1)"
+},
+
+mine:{
+background:"#0284c7",
+color:"white",
+padding:"12px",
+marginBottom:"10px",
+marginLeft:"35%",
+borderRadius:"12px"
+},
+
+other:{
+background:"#e5e7eb",
+padding:"12px",
+marginBottom:"10px",
+marginRight:"35%",
+borderRadius:"12px"
+},
+
+bottom:{
+display:"flex",
+marginTop:"20px",
+gap:"10px"
+},
+
+input:{
+flex:1,
+padding:"12px",
+borderRadius:"10px",
+border:"1px solid #ccc"
+},
+
+btn:{
+padding:"12px 25px",
+background:"#0284c7",
+color:"white",
+border:"none",
+borderRadius:"10px",
+cursor:"pointer"
+},
+
+empty:{
+textAlign:"center",
+marginTop:"180px",
+fontSize:"20px",
+color:"#666"
+}
+
 };
 
 export default Discussion;

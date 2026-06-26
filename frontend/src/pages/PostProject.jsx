@@ -1,7 +1,15 @@
 import { useState } from "react";
 import axios from "axios";
-
 function PostProject() {
+
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (!user) {
+    window.location = "/login";
+    return null;
+  }
+
+  const clientId = user.user_id;
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [budget, setBudget] = useState("");
@@ -11,17 +19,25 @@ function PostProject() {
 
     try {
       await axios.post(
-        "http://localhost:5000/api/projects",
-        {
-          title,
-          description,
-          budget,
-          status: "open",
-          client_id: 24,
-        }
-      );
+
+  "http://localhost:5000/api/projects",
+
+  {
+    title,
+    description,
+    budget
+  },
+
+  {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`
+    }
+  }
+
+);
 
       alert("Project Posted Successfully");
+      window.location="/client-dashboard";
 
       setTitle("");
       setDescription("");

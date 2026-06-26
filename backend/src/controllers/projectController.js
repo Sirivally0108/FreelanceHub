@@ -4,44 +4,50 @@ const pool = require('../config/db');
 // Create Project
 exports.createProject = async (req, res) => {
 
-    try {
+  try {
 
-        const {
-            title,
-            description,
-            budget,
-            client_id
-        } = req.body;
+    const {
+      title,
+      description,
+      budget
+    } = req.body;
 
-        const result = await pool.query(
-            `
-            INSERT INTO projects
-            (title,description,budget,client_id)
-            VALUES($1,$2,$3,$4)
-            RETURNING *
-            `,
-            [title, description, budget, client_id]
-        );
+    // Get client ID from the verified JWT token
+    const client_id = req.user.id;
 
-        res.status(201).json({
-            success: true,
-            message: "Project created successfully",
-            data: result.rows[0]
-        });
+    const result = await pool.query(
+      `
+      INSERT INTO projects
+      (title,description,budget,client_id)
+      VALUES($1,$2,$3,$4)
+      RETURNING *
+      `,
+      [
+        title,
+        description,
+        budget,
+        client_id
+      ]
+    );
 
-    }
+    res.status(201).json({
+      success: true,
+      message: "Project created successfully",
+      data: result.rows[0]
+    });
 
-    catch (error) {
-        console.error(error);
+  } catch (error) {
 
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+
+  }
 
 };
-
 
 
 // Get All Projects
